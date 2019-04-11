@@ -75,7 +75,7 @@ output_aesthetics(::Any) = []
 default_scales(::Any) = []
 default_scales(x::Any, t) = default_scales(x)
 default_statistic(::Any) = Stat.identity()
-element_coordinate_type(::Any) = Coord.cartesian
+element_coordinate_type(::Any) = (Coord.cartesian)
 
 function aes2str(aes)
   list = join([string('`',x,'`') for x in aes], ", ", " and ")
@@ -435,8 +435,8 @@ function render_prepare(plot::Plot)
     for layer in plot.layers
         coord_type = element_coordinate_type(layer.geom)
         if coord === nothing
-            coord = coord_type()
-        elseif typeof(coord) != coord_type
+            coord = coord_type[1]()
+        elseif !(typeof(coord) in coord_type)
             error("Plot uses multiple coordinates: $(typeof(coord)) and $(coord_type)")
         end
     end
@@ -484,7 +484,7 @@ function render_prepare(plot::Plot)
 
     defined_unused_aesthetics = setdiff(mapped_aesthetics, used_aesthetics)
     isempty(defined_unused_aesthetics) ||
-            @warn "The following aesthetics are mapped, but not used by any geometry:\n" * 
+            @warn "The following aesthetics are mapped, but not used by any geometry:\n" *
                 join(defined_unused_aesthetics, ", ")
 
     scaled_aesthetics = Set{Symbol}()

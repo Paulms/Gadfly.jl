@@ -117,7 +117,7 @@ function default_scales(geom::SubplotGrid)
     return scales
 end
 
-element_coordinate_type(::SubplotGrid) = Gadfly.Coord.subplot_grid
+element_coordinate_type(::SubplotGrid) = (Gadfly.Coord.subplot_grid)
 
 default_statistic(geom::SubplotGrid) = isempty(geom.statistics) ?
         [default_statistic(l.geom) for l in geom.layers] : geom.statistics

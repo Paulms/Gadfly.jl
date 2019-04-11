@@ -4,6 +4,7 @@ struct PointGeometry <: Gadfly.GeometryElement
     tag::Symbol
 end
 PointGeometry(; tag=empty_tag) = PointGeometry(tag)
+element_coordinate_type(::PointGeometry) = (Coord.cartesian, Coord.polar)
 
 """
     Geom.point
@@ -73,7 +74,7 @@ function render(geom::PointGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics
         class = svg_color_class_from_label(aes.color_label([color])[1])
         compose!(ctx, (context(),
               (context(), shapefun([x], [y], [sizeval]), svgclass("marker")),
-              fill(color), stroke(strokecolor), fillopacity(alpha), 
+              fill(color), stroke(strokecolor), fillopacity(alpha),
               svgclass(class)))
     end
 

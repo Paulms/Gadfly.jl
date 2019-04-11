@@ -1165,6 +1165,13 @@ function layout_guides(plot_context::Context,
         elseif coord.aspect_ratio != nothing
             aspect_ratio = coord.aspect_ratio
         end
+    elseif isa(coord, Gadfly.Coord.polar)
+        if coord.fixed
+            aspect_ratio = plot_context.units===nothing ? 1.0 :
+                     abs(plot_context.units.width / plot_context.units.height)
+        elseif coord.aspect_ratio != nothing
+            aspect_ratio = coord.aspect_ratio
+        end
     end
     tbl = table(m, n, focus_y:focus_y, focus_x:focus_x, units=plot_units,
                 aspect_ratio=aspect_ratio)
