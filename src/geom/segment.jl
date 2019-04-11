@@ -5,10 +5,10 @@ struct SegmentGeometry <: Gadfly.GeometryElement
     default_statistic::Gadfly.StatisticElement
     arrow::Bool
     filled::Bool
-    tag::Symbol 
-end 
-SegmentGeometry(default_statistic=Gadfly.Stat.identity(); arrow=false, filled=false, tag=empty_tag) = 
-    SegmentGeometry(default_statistic, arrow, filled, tag) 
+    tag::Symbol
+end
+SegmentGeometry(default_statistic=Gadfly.Stat.identity(); arrow=false, filled=false, tag=empty_tag) =
+    SegmentGeometry(default_statistic, arrow, filled, tag)
 
 """
     Geom.segment[(; arrow=false, filled=false)]
@@ -47,16 +47,17 @@ aesthetic.  This geometry is equivalent to [`Geom.segment`](@ref) with
 """
 function vectorfield(;smoothness=1.0, scale=1.0, samples=20, filled::Bool=false)
     return SegmentGeometry(
-        Gadfly.Stat.vectorfield(smoothness, scale, samples), 
+        Gadfly.Stat.vectorfield(smoothness, scale, samples),
         arrow=true, filled=filled )
 end
 
 default_statistic(geom::SegmentGeometry) = geom.default_statistic
-element_aesthetics(::SegmentGeometry) = [:x, :y, :xend, :yend, :color] 
+element_aesthetics(::SegmentGeometry) = [:x, :y, :xend, :yend, :color]
 
 
-function render(geom::SegmentGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
-    
+function render(geom::SegmentGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
+
     Gadfly.assert_aesthetics_defined("Geom.segment", aes, :x, :y, :xend, :yend)
 
     function arrow(x::T, y::T, xmax::T, ymax::T, xyrange::Vector{T}) where T<:Real
@@ -71,10 +72,10 @@ function render(geom::SegmentGeometry, theme::Gadfly.Theme, aes::Gadfly.Aestheti
     end
 
     n = length(aes.x)
-    default_aes = Gadfly.Aesthetics()  
+    default_aes = Gadfly.Aesthetics()
     default_aes.color = fill(RGBA{Float32}(theme.default_color), n)
 
-    aes = inherit(aes, default_aes) 
+    aes = inherit(aes, default_aes)
 
     line_style = Gadfly.get_stroke_vector(theme.line_style[1])
 
@@ -90,24 +91,24 @@ function render(geom::SegmentGeometry, theme::Gadfly.Theme, aes::Gadfly.Aestheti
          arrows = [ arrow(x, y, xend, yend, xyrange)
                 for (x, y, xend, yend) in zip(aes.x, aes.y, aes.xend, aes.yend) ]
     end
-    
+
     segments = [ [(x,y), (xend,yend)]
-        for (x, y, xend, yend) in zip(aes.x, aes.y, aes.xend, aes.yend) ]  
-       
+        for (x, y, xend, yend) in zip(aes.x, aes.y, aes.xend, aes.yend) ]
+
     classes = [svg_color_class_from_label( aes.color_label([c])[1] ) for c in aes.color ]
-    
+
     ctx = context()
 
     compose!( ctx, (context(), Compose.line(segments, geom.tag),
-                stroke(aes.color), linewidth(theme.line_width), 
+                stroke(aes.color), linewidth(theme.line_width),
                 strokedash(line_style), svgclass( classes )),
               svgclass("geometry")  )
     if geom.arrow
         if geom.filled
             compose!(ctx, (context(), Compose.polygon(arrows), fill(aes.color), strokedash([])) )
         else
-            compose!(ctx, (context(), Compose.line(arrows), stroke(aes.color), linewidth(theme.line_width), 
-            strokedash([]))  )        
+            compose!(ctx, (context(), Compose.line(arrows), stroke(aes.color), linewidth(theme.line_width),
+            strokedash([]))  )
         end
     end
 

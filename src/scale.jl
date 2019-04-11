@@ -171,7 +171,7 @@ const slope_continuous = continuous_scale_partial([:slope], identity_transform)
     alpha_continuous[(; minvalue=0.0, maxvalue=1.0, labels=nothing,
                      format=nothing, minticks=2, maxticks=10, scalable=true)]
 
-Rescale the data values between `minvalue` and `maxvalue` to opacity (alpha) values between 0 and 1.  
+Rescale the data values between `minvalue` and `maxvalue` to opacity (alpha) values between 0 and 1.
 """
 alpha_continuous(; minvalue=0.0, maxvalue=1.0, labels=nothing, format=nothing, minticks=2, maxticks=10, scalable=true) =
      ContinuousScale([:alpha], identity_transform, minvalue=minvalue, maxvalue=maxvalue,
@@ -324,7 +324,7 @@ anything in the data that's not respresented in `levels` will be set to
 `missing`.  `order` is a vector of integers giving a permutation of the levels
 default order.
 
-See also [`group_discrete`](@ref), [`shape_discrete`](@ref), 
+See also [`group_discrete`](@ref), [`shape_discrete`](@ref),
 [`size_discrete`](@ref), [`linestyle_discrete`](@ref), and [`alpha_discrete`](@ref).
 """
 
@@ -478,13 +478,13 @@ Gadfly.Scale.DiscreteColorScale(Gadfly.Scale.default_discrete_colors, nothing, n
 
 julia> x.f(3)
 3-element Array{ColorTypes.Color,1}:
- LCHab{Float32}(70.0,60.0,240.0)        
- LCHab{Float32}(80.0,70.0,100.435)      
+ LCHab{Float32}(70.0,60.0,240.0)
+ LCHab{Float32}(80.0,70.0,100.435)
  LCHab{Float32}(65.8994,62.2146,353.998)
 ```
 """
 color_discrete_hue(f=default_discrete_colors;
-                   levels=nothing, order=nothing, preserve_order=true) = 
+                   levels=nothing, order=nothing, preserve_order=true) =
         DiscreteColorScale(f, levels=levels, order=order, preserve_order=preserve_order)
 
 @deprecate discrete_color_hue(; levels=nothing, order=nothing, preserve_order=true) color_discrete_hue(; levels=levels, order=order, preserve_order=preserve_order)
@@ -711,7 +711,7 @@ const label = LabelScale
     xgroup[(; labels=nothing, levels=nothing, order=nothing)]
 
 A discrete scale for use with [`Geom.subplot_grid`](@ref Gadfly.Geom.subplot_grid).
-""" 
+"""
 xgroup(; labels=nothing, levels=nothing, order=nothing) =
         DiscreteScale([:xgroup], labels=labels, levels=levels, order=order)
 

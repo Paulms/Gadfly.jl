@@ -2,7 +2,7 @@ struct ErrorBarGeometry <: Gadfly.GeometryElement
     default_statistic::Gadfly.StatisticElement
     tag::Symbol
 end
-ErrorBarGeometry(default_statistic=Gadfly.Stat.identity(); tag=empty_tag) = 
+ErrorBarGeometry(default_statistic=Gadfly.Stat.identity(); tag=empty_tag) =
     ErrorBarGeometry(default_statistic, tag)
 
 
@@ -63,7 +63,8 @@ default_statistic(geom::ErrorBarGeometry) = geom.default_statistic
 # Returns:
 #   A compose Form.
 #
-function render(geom::ErrorBarGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::ErrorBarGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     # check for X and Y error bar aesthetics
     if isempty(Gadfly.undefined_aesthetics(aes, :y, :xmin, :xmax))
         xctx = render(xerrorbar(), theme, aes)
@@ -78,7 +79,8 @@ function render(geom::ErrorBarGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthet
     compose(context(order=3), xctx, yctx, svgclass("geometry"))
 end
 
-function render(geom::YErrorBarGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::YErrorBarGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     Gadfly.assert_aesthetics_defined("Geom.errorbar", aes, :x, :ymin, :ymax)
     Gadfly.assert_aesthetics_equal_length("Geom.errorbar", aes, :x, :ymin, :ymax)
 
@@ -116,7 +118,8 @@ function render(geom::YErrorBarGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthe
     return ctx
 end
 
-function render(geom::XErrorBarGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::XErrorBarGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     Gadfly.assert_aesthetics_defined("Geom.errorbar", aes, :y, :xmin, :xmax)
     Gadfly.assert_aesthetics_equal_length("Geom.errorbar", aes, :y, :xmin, :xmax)
 

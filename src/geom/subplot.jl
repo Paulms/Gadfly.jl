@@ -126,6 +126,7 @@ default_statistic(geom::SubplotGrid) = isempty(geom.statistics) ?
 # Render a subplot grid geometry, which consists of rendering and arranging
 # many smaller plots.
 function render(geom::SubplotGrid, theme::Gadfly.Theme,
+                ::Gadfly.CoordinateElement,
                 superplot_aes::Gadfly.Aesthetics,
                 subplot_layer_aess::Vector{Gadfly.Aesthetics},
                 subplot_layer_datas::Vector{Gadfly.Data},

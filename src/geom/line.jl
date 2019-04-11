@@ -101,7 +101,8 @@ element_aesthetics(::LineGeometry) = [:x, :y, :color, :group, :linestyle]
 
 
 
-function Gadfly.Geom.render(geom::LineGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function Gadfly.Geom.render(geom::LineGeometry, theme::Gadfly.Theme,
+                            aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     Gadfly.assert_aesthetics_defined("Geom.line", aes, :x, :y)
     Gadfly.assert_aesthetics_equal_length("Geom.line", aes, Geom.element_aesthetics(geom)...)
 
@@ -110,31 +111,31 @@ function Gadfly.Geom.render(geom::LineGeometry, theme::Gadfly.Theme, aes::Gadfly
     default_aes.color = fill(theme.default_color, length(aes.x))
     default_aes.linestyle = fill(1, length(aes.x))
     aes = Gadfly.inherit(aes, default_aes)
-    
+
     # Point order:
     p = 1:length(aes.x)
     !geom.preserve_order && (p = sortperm(aes.x))
     aes_x, aes_y, aes_color, aes_g = aes.x[p], aes.y[p], aes.color[p], aes.group[p]
     aes_linestyle = aes.linestyle[p]
-    
+
     # Find the aesthetic with the most levels:
     aesv = [aes_g, aes_color, aes_linestyle]
     i1 = argmax([length(unique(a)) for a in aesv])
     aes_maxlvls = aesv[i1]
-  
+
     # Concrete values?:
     cf = Gadfly.isconcrete.(aes_x) .& Gadfly.isconcrete.(aes_y)
     fcf = .!cf
     ulvls =  unique(aes_maxlvls[fcf])
     aes_concrete = zeros(Int, length(cf))
-    for g in ulvls    
+    for g in ulvls
         i = aes_maxlvls.==g
         aes_concrete[i] = cumsum(fcf[i])
     end
-    
+
     aes_x, aes_y, aes_color, aes_g = aes_x[cf], aes_y[cf], aes_color[cf], aes_g[cf]
     aes_concrete, aes_linestyle = aes_concrete[cf], aes_linestyle[cf]
-    
+
     # Render lines, using multivariate groupings:
     XT, YT, CT, GT, CNT = eltype(aes_x), eltype(aes_y), eltype(aes_color), eltype(aes_g), eltype(aes_concrete)
     LST = eltype(aes_linestyle)
@@ -150,17 +151,17 @@ function Gadfly.Geom.render(geom::LineGeometry, theme::Gadfly.Theme, aes::Gadfly
         i = groups.==[g]
         lines[k] = collect(Tuple{XT,YT}, zip(aes_x[i], aes_y[i]))
         line_colors[k] = first(aes_color[i])
-        line_styles[k] = mod1(first(aes_linestyle[i]), linestyle_palette_length) 
+        line_styles[k] = mod1(first(aes_linestyle[i]), linestyle_palette_length)
     end
-    
+
     linestyles =  Gadfly.get_stroke_vector.(theme.line_style[line_styles])
     classes = svg_color_class_from_label.(aes.color_label(line_colors))
     ctx = context(order=geom.order)
     ctx = compose!(ctx, (context(), Compose.line(lines, geom.tag),
                         stroke(line_colors),
                         strokedash(linestyles),
-                        svgclass(classes)), svgclass("geometry")) 
-    
+                        svgclass(classes)), svgclass("geometry"))
+
     return compose!(ctx, fill(nothing), linewidth(theme.line_width))
 
 

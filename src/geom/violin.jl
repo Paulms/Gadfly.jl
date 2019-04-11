@@ -17,7 +17,8 @@ element_aesthetics(::ViolinGeometry) = [:x, :y, :color]
 
 default_statistic(::ViolinGeometry) = Gadfly.Stat.violin()
 
-function render(geom::ViolinGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::ViolinGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     # TODO: What should we do with the color aesthetic?
 
     Gadfly.assert_aesthetics_defined("Geom.violin", aes, :y, :width)
@@ -26,7 +27,7 @@ function render(geom::ViolinGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetic
     default_aes = Gadfly.Aesthetics()
     default_aes.color = fill(theme.default_color, length(aes.y))
     aes = Gadfly.inherit(aes, default_aes)
-    
+
     # Group y, width and color by x
     ux = unique(aes.x)
     grouped_color = Dict(x => first(aes.color[aes.x.==x]) for x in ux)

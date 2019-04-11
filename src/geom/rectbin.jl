@@ -62,7 +62,8 @@ element_aesthetics(::RectangularBinGeometry) =
 # Returns
 #   A compose form.
 #
-function render(geom::RectangularBinGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::RectangularBinGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
 
     default_aes = Gadfly.Aesthetics()
     default_aes.color = discretize_make_ia(RGBA{Float32}[theme.default_color])

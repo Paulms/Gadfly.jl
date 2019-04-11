@@ -19,7 +19,8 @@ default_statistic(geom::RibbonGeometry) = geom.default_statistic
 
 element_aesthetics(::RibbonGeometry) = [:x, :ymin, :ymax, :color, :linestyle, :alpha]
 
-function render(geom::RibbonGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::RibbonGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     Gadfly.assert_aesthetics_defined("Geom.ribbon", aes, :x, :ymin, :ymax)
     Gadfly.assert_aesthetics_equal_length("Geom.ribbon", aes, element_aesthetics(geom)...)
 
@@ -35,7 +36,7 @@ function render(geom::RibbonGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetic
     YT = Float64
     groups = collect((Tuple{CT, LST, AT}), zip(aes_color, aes_linestyle, aes_alpha))
     ug = unique(groups)
-    
+
     V = Vector{Tuple{XT, YT}}
     K = Tuple{CT, LST, AT}
 
@@ -72,7 +73,7 @@ function render(geom::RibbonGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetic
 
     ctx = context()
 
-    geom.fill ? compose!(ctx, Compose.polygon(polys, geom.tag), fill(colors), fillopacity(alphas)) : 
+    geom.fill ? compose!(ctx, Compose.polygon(polys, geom.tag), fill(colors), fillopacity(alphas)) :
         compose!(ctx, Compose.line(lines, geom.tag), fill(nothing), stroke(colors), strokedash(linestyles))
 
     return compose!(ctx, svgclass("geometry"), linewidth(theme.line_width))

@@ -10,7 +10,7 @@ struct LabelGeometry <: Gadfly.GeometryElement
 
     tag::Symbol
 end
-LabelGeometry(; position=:dynamic, hide_overlaps=true, tag=empty_tag) = 
+LabelGeometry(; position=:dynamic, hide_overlaps=true, tag=empty_tag) =
         LabelGeometry(position, hide_overlaps, tag)
 
 element_aesthetics(::LabelGeometry) = [:x, :y, :label]
@@ -265,7 +265,8 @@ const label_layouts = Dict(
 )
 
 
-function render(geom::LabelGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::LabelGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     Gadfly.assert_aesthetics_defined("Geom.Label", aes, :label, :x, :y)
 
     if geom.position == :dynamic

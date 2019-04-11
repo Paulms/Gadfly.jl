@@ -47,7 +47,8 @@ function polygon_points(x::AbstractVector, y::AbstractVector, preserve_order::Bo
     return collect(Tuple{XT,YT}, zip(x, y))[p]
 end
 
-function render(geom::PolygonGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::PolygonGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     Gadfly.assert_aesthetics_defined("Geom.polygon", aes, :x, :y)
 
     default_aes = Gadfly.Aesthetics()
@@ -58,7 +59,7 @@ function render(geom::PolygonGeometry, theme::Gadfly.Theme, aes::Gadfly.Aestheti
     aes = inherit(aes, default_aes)
 
     aes_x, aes_y, aes_color, aes_linestyle, aes_group, aes_alpha = concretize(aes.x, aes.y, aes.color, aes.linestyle, aes.group, aes.alpha)
-    
+
     XT, YT, CT, GT, LST, AT = eltype(aes_x), eltype(aes_y), eltype(aes_color), eltype(aes_group), eltype(aes_linestyle), eltype(aes_alpha)
 
     groups = collect((Tuple{CT, GT, LST, AT}), zip(aes_color, aes_group, aes_linestyle, aes_alpha))
@@ -80,12 +81,12 @@ function render(geom::PolygonGeometry, theme::Gadfly.Theme, aes::Gadfly.Aestheti
         line_styles[k] = mod1(first(aes_linestyle[i]), linestyle_palette_length)
         alphas[k] = first(alpha_discrete ? theme.alphas[aes_alpha[i]] : aes_alpha[i])
     end
-    
+
     plinestyles = Gadfly.get_stroke_vector.(theme.line_style[line_styles])
     pcolors = theme.lowlight_color.(colors)
-    
+
     properties = geom.fill ? (fill(pcolors), stroke(theme.discrete_highlight_color.(colors)), fillopacity(alphas)) :
-        (fill(nothing), stroke(pcolors), strokedash(plinestyles))                
+        (fill(nothing), stroke(pcolors), strokedash(plinestyles))
 
     ctx = context(order=geom.order)
     compose!(ctx, Compose.polygon(polys, geom.tag), properties...)

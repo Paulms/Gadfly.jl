@@ -25,7 +25,8 @@ const hexbin = HexagonalBinGeometry
 default_statistic(geom::HexagonalBinGeometry) = geom.default_statistic
 element_aesthetics(geom::HexagonalBinGeometry) = [:x, :y, :xsize, :ysize, :color]
 
-function render(geom::HexagonalBinGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::HexagonalBinGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     default_aes = Gadfly.Aesthetics()
     default_aes.color = discretize_make_ia(RGB{Float32}[theme.default_color])
     default_aes.xsize = [1.0]

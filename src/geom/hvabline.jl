@@ -33,7 +33,8 @@ const hline = HLineGeometry
 element_aesthetics(::HLineGeometry) = [:yintercept]
 
 # Generate a form for the hline geometry
-function render(geom::HLineGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::HLineGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     Gadfly.assert_aesthetics_defined("Geom.hline", aes, :yintercept)
 
     color = geom.color === nothing ? theme.default_color : geom.color
@@ -80,7 +81,8 @@ const vline = VLineGeometry
 element_aesthetics(::VLineGeometry) = [:xintercept]
 
 # Generate a form for the vline geometry
-function render(geom::VLineGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::VLineGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     Gadfly.assert_aesthetics_defined("Geom.vline", aes, :xintercept)
 
     color = geom.color === nothing ? theme.default_color : geom.color
@@ -124,13 +126,14 @@ For each corresponding pair of elements in the `intercept` and `slope` aesthetic
 draw the lines `T(y) = slope * T(x) + intercept` across the plot canvas, where `T(⋅)` defaults to the identity function.
 If unspecified, `intercept` defaults to [0] and `slope` to [1].
 
-This geometry also works with nonlinear `Scale` transformations of the `y` and/or `x` variable, with one caveat: for log transformations of the `x` variable, the `intercept` is the `y`-value at `x=1` rather than at `x=0`. 
+This geometry also works with nonlinear `Scale` transformations of the `y` and/or `x` variable, with one caveat: for log transformations of the `x` variable, the `intercept` is the `y`-value at `x=1` rather than at `x=0`.
 """
 const abline = ABLineGeometry
 
 element_aesthetics(geom::ABLineGeometry) = [:intercept, :slope]
 
-function render(geom::ABLineGeometry, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(geom::ABLineGeometry, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Coord.cartesian)
     if aes.intercept == nothing && aes.slope == nothing
         aes.intercept = [0]
         aes.slope = [1]

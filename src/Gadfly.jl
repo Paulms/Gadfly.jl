@@ -75,7 +75,7 @@ output_aesthetics(::Any) = []
 default_scales(::Any) = []
 default_scales(x::Any, t) = default_scales(x)
 default_statistic(::Any) = Stat.identity()
-element_coordinate_type(::Any) = (Coord.cartesian)
+element_coordinate_type(::Any) = (Coord.cartesian,)
 
 function aes2str(aes)
   list = join([string('`',x,'`') for x in aes], ", ", " and ")
@@ -815,7 +815,7 @@ function render_prepared(plot::Plot,
                themes)
 
     compose!(plot_context,
-             [compose(context(order=layer.order), render(layer.geom, theme, aes,
+             [compose(context(order=layer.order), render(layer.geom, theme, aes, coord,
                                                          subplot_aes, subplot_data,
                                                          scales))
               for (layer, aes, subplot_aes, subplot_data, theme) in zips]...)
@@ -823,7 +823,7 @@ function render_prepared(plot::Plot,
     # V. Guides
     guide_contexts = Any[]
     for guide in guides
-        guide_context = render(guide, plot.theme, plot_aes, dynamic)
+        guide_context = render(guide, plot.theme, plot_aes, coord, dynamic)
         if guide_context != nothing
             append!(guide_contexts, guide_context)
         end

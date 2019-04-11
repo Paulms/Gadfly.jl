@@ -7,6 +7,7 @@ import Gadfly.Maybe
 
 export cartesian
 export polar
+export cartesian_to_polar, polar_to_cartesian
 
 struct Cartesian <: Gadfly.CoordinateElement
     xvars::Vector{Symbol}
@@ -327,7 +328,6 @@ const polar = Polar
 cartesian_to_polar(x, y) = (hypot(x, y), atan2(y, x))
 polar_to_cartesian(ρ, ϕ) = (ρ * cos(ϕ), ρ * sin(ϕ))
 
-
 # Produce a context with suitable polar coordinates.
 #
 # Args:
@@ -453,13 +453,13 @@ function apply_coordinate(coord::Polar, aess::Vector{Gadfly.Aesthetics},
         ymax += 0.5
     end
 
-    width  = xmax - xmin
-    height = ymax - ymin
+    width  = 2*(ymax-ymin)
+    height = 2*(ymax-ymin)
 
     compose!(
         context(units=UnitBox(
-            coord.xflip ? xmax : xmin,
-            coord.yflip ? ymin : ymax,
+            coord.xflip ? ymax : -ymax,
+            coord.yflip ? -ymax : ymax,
             coord.xflip ? -width : width,
             coord.yflip ? height : -height,
             leftpad=xpadding,

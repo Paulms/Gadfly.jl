@@ -24,25 +24,26 @@ const shapekey = ShapeKey
 
 
 
-function Guide.render(guide::Guide.ShapeKey, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function Guide.render(guide::Guide.ShapeKey, theme::Gadfly.Theme,
+                        aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
 
     (theme.key_position == :none) && return Gadfly.Guide.PositionedGuide[]
     gpos = guide.pos
     (theme.key_position == :inside) && (gpos == Float64[]) &&  (gpos = [0.7w, 0.25h])
 
-    # Aesthetics for keys: shape_key_title, shape_label (Function), shape_key_shapes (AbstractDict)    
+    # Aesthetics for keys: shape_key_title, shape_label (Function), shape_key_shapes (AbstractDict)
     nshapes = length(unique(aes.shape))
     guide_title = (guide.title!="Shape" || aes.shape_key_title==nothing) ? guide.title : aes.shape_key_title
     shape_key_labels = !(guide.labels==[""]) ? guide.labels : aes.shape_label(1:nshapes)
-    
+
     colors = [nothing]
     if (aes.shape_key_title !=nothing)  && (aes.color_key_title==aes.shape_key_title)
         colors = collect(keys(aes.color_key_colors))
     end
-    
+
     title_context, title_width = Guide.render_key_title(guide_title, theme)
     ctxs = render_discrete_key(shape_key_labels, title_context, title_width, theme, shapes=1:nshapes, colors=colors)
-    
+
     position = right_guide_position
     if gpos != Float64[]
         position = over_guide_position
@@ -65,7 +66,7 @@ end
 
 
 
-function render_discrete_key(labels::Vector{String}, title_ctx::Context, title_width::Measure, theme::Gadfly.Theme; 
+function render_discrete_key(labels::Vector{String}, title_ctx::Context, title_width::Measure, theme::Gadfly.Theme;
     colors=[nothing], aes_color_label=nothing, shapes=[nothing])
 
     n = max(length(colors), length(shapes))
@@ -94,7 +95,7 @@ function render_discrete_key(labels::Vector{String}, title_ctx::Context, title_w
             colrows[i] = min(m, ceil(Integer, (n / numcols)))
             m -= colrows[i]
         end
-        
+
         xpad = 1mm
         colwidths = Array{Measure}(undef, numcols)
         m = 0
@@ -126,7 +127,7 @@ function render_discrete_key(labels::Vector{String}, title_ctx::Context, title_w
             xpos = 0w
             for (i, nrows) in enumerate(colrows)
                 colwidth = colwidths[i]
-                
+
                 x = [0.5cy]
                 clrs = colors[m+1:m+nrows]
                 shps = shapes[m+1:m+nrows]
@@ -175,7 +176,3 @@ function render_discrete_key(labels::Vector{String}, title_ctx::Context, title_w
 
     return map(make_layout, 1:maxcols)
 end
-
-
-
-

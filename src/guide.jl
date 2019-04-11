@@ -34,7 +34,7 @@ end
 const questionmark = QuestionMark
 
 function render(guide::QuestionMark, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
     text_color = theme.background_color == nothing ?
             colorant"black" : distinguishable_colors(2,theme.background_color)[2]
     text_box = compose!( context(),
@@ -63,7 +63,7 @@ end
 const helpscreen = HelpScreen
 
 function render(guide::HelpScreen, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
     box_color = theme.background_color == nothing ?
             colorant"black" : distinguishable_colors(2,theme.background_color)[2]
     text_color = distinguishable_colors(2,box_color)[2]
@@ -103,7 +103,7 @@ end
 const crosshair = CrossHair
 
 function render(guide::CrossHair, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
     text_color = theme.background_color == nothing ?
             colorant"black" : distinguishable_colors(2,theme.background_color)[2]
     text_box = compose!(
@@ -138,11 +138,12 @@ end
 const background = PanelBackground
 
 render(guide::Gadfly.GuideElement, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics, dynamic::Bool=true) =
-        render(guide, theme, aes)
+                aes::Gadfly.Aesthetics,
+                coord::Gadfly.CoordinateElement, dynamic::Bool=true) =
+        render(guide, theme, aes, coord)
 
 function render(guide::PanelBackground, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
     back = compose!(context(order=-1),
                     rectangle(),
                     svgclass("guide background"),
@@ -391,7 +392,7 @@ end
 
 
 function render(guide::ColorKey, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
 
     (theme.key_position == :none || isempty(aes.color_key_colors)) && return PositionedGuide[]
     gpos = guide.pos
@@ -510,7 +511,7 @@ Manually define a color key with the legend `title` and item `labels` and `color
 const manual_color_key = ManualColorKey
 
 function render(guide::ManualColorKey, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
     if theme.key_position == :none
         return PositionedGuide[]
     end
@@ -572,7 +573,7 @@ default_statistic(guide::XTicks) =
     guide.ticks == nothing ? Stat.identity() : Stat.xticks(ticks=guide.ticks)
 
 function render(guide::XTicks, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics, dynamic::Bool=true)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement, dynamic::Bool=true)
     guide.ticks == nothing && return PositionedGuide[]
 
     if Gadfly.issomething(aes.xtick)
@@ -748,7 +749,8 @@ function default_statistic(guide::YTicks)
 end
 
 function render(guide::YTicks, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics, dynamic::Bool=true)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement,
+                dynamic::Bool=true)
     if guide.ticks == nothing
         return PositionedGuide[]
     end
@@ -918,7 +920,7 @@ Sets the x-axis label for the plot.  `label` is either a `String` or `nothing`.
 const xlabel = XLabel
 
 function render(guide::XLabel, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
     if guide.label === nothing || isempty(guide.label)
         return nothing
     end
@@ -985,7 +987,8 @@ Sets the y-axis label for the plot.  `label` is either a `String` or `nothing`.
 const ylabel = YLabel
 
 
-function render(guide::YLabel, theme::Gadfly.Theme, aes::Gadfly.Aesthetics)
+function render(guide::YLabel, theme::Gadfly.Theme,
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
     if guide.label === nothing || isempty(guide.label)
         return nothing
     end
@@ -1043,7 +1046,7 @@ Set the plot title.
 const title = Title
 
 function render(guide::Title, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
     if guide.label === nothing || isempty(guide.label)
         return nothing
     end
@@ -1076,7 +1079,7 @@ Draw a short vertical lines along the x-axis of a plot at the positions in the `
 const xrug = XRug
 
 function render(guide::XRug, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
     Gadfly.assert_aesthetics_defined("Guide.xrug", aes, :x)
     padding = 0.4mm
 
@@ -1102,7 +1105,7 @@ Draw short horizontal lines along the y-axis of a plot at the positions in the '
 const yrug = YRug
 
 function render(guide::YRug, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
     Gadfly.assert_aesthetics_defined("Guide.yrug", aes, :y)
     padding = 0.4mm
 
@@ -1252,7 +1255,7 @@ the plot's coordinate system, unless overridden with a custom unit box.
 const annotation = Annotation
 
 function render(guide::Annotation, theme::Gadfly.Theme,
-                aes::Gadfly.Aesthetics)
+                aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement)
     ctx = compose(context(), svgclass("geometry"), guide.ctx)
     return [PositionedGuide([ctx], 0, over_guide_position)]
 end
