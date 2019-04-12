@@ -18,9 +18,15 @@ include("color_misc.jl")
 iscategorical(scales::Dict{Symbol, Gadfly.ScaleElement}, var::Symbol) =
         haskey(scales, var) && isa(scales[var], DiscreteScale)
 
-function apply_scales(scales, aess::Vector{Gadfly.Aesthetics}, datas::Gadfly.Data...)
+function apply_scales(scales, coord::Gadfly.CoordinateElement, aess::Vector{Gadfly.Aesthetics}, datas::Gadfly.Data...)
     for scale in scales
         apply_scale(scale, aess, datas...)
+        if typeof(coord) == Gadfly.Coord.Polar && typeof(scale) == DiscreteScale && :x in scale.vars
+            for aes in aess
+                xv = getfield(aes, :x)
+                setfield!(aes, :x, (xv.-minimum(xv))*(2*pi/maximum(xv)))
+            end
+        end
     end
 
     for (aes, data) in zip(aess, datas)
@@ -28,9 +34,9 @@ function apply_scales(scales, aess::Vector{Gadfly.Aesthetics}, datas::Gadfly.Dat
     end
 end
 
-function apply_scales(scales, datas::Gadfly.Data...)
+function apply_scales(scales, coord::Gadfly.CoordinateElement, datas::Gadfly.Data...)
     aess = Gadfly.Aesthetics[Gadfly.Aesthetics() for _ in datas]
-    apply_scales(scales, aess, datas...)
+    apply_scales(scales, coord, aess, datas...)
     aess
 end
 

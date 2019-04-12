@@ -653,7 +653,7 @@ function render_prepare(plot::Plot)
 
     # I. Scales
     layer_aess = Scale.apply_scales(IterTools.distinct(values(scales)),
-                                    datas..., subplot_datas...)
+                                    coord, datas..., subplot_datas...)
 
     # set defaults for key titles
     keyvars = [:color, :shape]

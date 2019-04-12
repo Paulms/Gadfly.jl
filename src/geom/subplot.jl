@@ -178,7 +178,7 @@ function render(geom::SubplotGrid, theme::Gadfly.Theme,
                 for layer in geom.layers]
 
     for i in 1:n, j in 1:m
-        Scale.apply_scales(geom.scales,
+        Scale.apply_scales(geom.scales, coord,
                            Gadfly.Aesthetics[layer_aes_grid[k][i, j]
                                              for k in 1:length(geom.layers)],
                            Gadfly.Data[layer_data_grid[k][i, j]

@@ -272,7 +272,7 @@ Exchange y for x when `orientation` is `:horizontal`.  `bincount` specifies the
 number of bins to use.  If set to `nothing`, an optimization method is used to
 determine a reasonable value which uses `minbincount` and `maxbincount` to set
 the lower and upper limits.  If `density` is `true`, normalize the counts by
-their total. `limits` is a `NamedTuple` that sets the limits of the histogram `(min= , max= )`: 
+their total. `limits` is a `NamedTuple` that sets the limits of the histogram `(min= , max= )`:
 `min` or `max` or both can be set.
 """
 const histogram = HistogramStatistic
@@ -629,7 +629,7 @@ function apply_statistic(stat::Histogram2DStatistic,
     wy = (y_max==y_min) ? 1.0 : (y_max - y_min) / dy
     !x_categorial && (x_max==x_min) && (x_min-=0.5)
     !y_categorial && (y_max==y_min) && (y_min-=0.5)
-                                        
+
     n = 0
     for cnt in bincounts
         if cnt > 0
@@ -744,7 +744,7 @@ data with `coverage_weight`; and of having a nice numbering with
          granularity_weight=1/4,
          simplicity_weight=1/6,
          coverage_weight=1/3,
-         niceness_weight=1/4) = 
+         niceness_weight=1/4) =
     TickStatistic("x",
               granularity_weight, simplicity_weight, coverage_weight, niceness_weight, ticks)
 
@@ -877,7 +877,11 @@ function apply_statistic(stat::TickStatistic,
         end
         ticks = Int[t for t in ticks]
         sort!(ticks)
-        grids = (ticks .- 0.5)[2:end]
+        if typeof(coord) == Coord.Polar && stat.axis == "x"
+            grids = ((ticks .-1.5)*(2*pi/maximum(ticks)))[2:end]
+        else
+            grids = (ticks .- 0.5)[2:end]
+        end
         viewmin = minimum(ticks)
         viewmax = maximum(ticks)
         tickvisible = fill(true, length(ticks))
@@ -1009,7 +1013,7 @@ function apply_statistic(stat::BoxplotStatistic,
     end
     colorflag = aes.color != nothing
     aes_color =  colorflag ? aes.color : fill(nothing, length(aes_x))
-                     
+
     if aes.y == nothing
         groups = Any[]
         for (x, c) in zip(aes.x, cycle(aes_color))
@@ -1030,14 +1034,14 @@ function apply_statistic(stat::BoxplotStatistic,
             aes.yviewmax = yviewmax
         end
     else
-        YT = isempty(aes.y) ? eltype(aes.y) : typeof(aes.y[1] / 1)        
-        CT, XT = eltype(aes_color), eltype(aes_x)    
+        YT = isempty(aes.y) ? eltype(aes.y) : typeof(aes.y[1] / 1)
+        CT, XT = eltype(aes_color), eltype(aes_x)
         groups = collect(Tuple{CT, XT}, zip(aes_color, aes_x))
         ug = unique(groups)
 
         K = Tuple{CT, XT}
         grouped_y = Dict{K, Vector{YT}}(g=>aes.y[groups.==[g]] for g in ug)
- 
+
         m = length(ug)
         aes.x = Vector{XT}(undef, m)
         aes.middle = Vector{YT}(undef, m)
@@ -1125,7 +1129,7 @@ $(aes2str(output_aesthetics(smooth()))).  `method` can either be`:loess` or
 `:lm`.  `smoothing` controls the degree of smoothing.  For `:loess`, this is
 the span parameter giving the proportion of data used for each local fit where
 0.75 is the default. Larger values use more data (less local context), smaller
-values use less data (more local context).  `levels` is a vector of quantiles 
+values use less data (more local context).  `levels` is a vector of quantiles
 at which confidence bands are calculated (currently for `method=:lm` only).
 For confidence bands, use `Stat.smooth()` with `Geom.ribbon`.
 """
@@ -1141,7 +1145,7 @@ function Stat.apply_statistic(stat::SmoothStatistic,
 
     stat.method in [:loess,:lm] ||
     error("The only Stat.smooth methods currently supported are loess and lm.")
-   
+
     local xs, ys, yhat
     try
         xs = Float64.(eltype(aes.x) <: Dates.TimeType ? Dates.value.(aes.x) : aes.x)
@@ -1191,12 +1195,12 @@ function Stat.apply_statistic(stat::SmoothStatistic,
         level = 0.5*(stat.levels.+1)
         for lvl in level
             qt = quantile(TDist(dof), lvl)
-            append!(aes.x, x0)        
+            append!(aes.x, x0)
             append!(aes.y, yhat)
             append!(colors, fill(c, length(xv)))
             append!(aes.ymin, yhat.-qt*se.*xi)
             append!(aes.ymax, yhat.+qt*se.*xi)
-            append!(aes.linestyle, fill("$(lvl)", length(xv)))        
+            append!(aes.linestyle, fill("$(lvl)", length(xv)))
         end
     end
 
@@ -1638,7 +1642,7 @@ function apply_statistic(stat::ViolinStatistic,
 
     uxflag && (grouped_y = Dict(x=>aes.y[aes.x.==x] for x in ux))
 
-    grouped_color = (colorflag ? Dict(x=>first(aes.color[aes.x.==x]) for x in ux) : 
+    grouped_color = (colorflag ? Dict(x=>first(aes.color[aes.x.==x]) for x in ux) :
         uxflag && Dict(x=>nothing for x in ux) )
 
     aes.x     = Array{Float64}(undef, 0)
@@ -1978,12 +1982,12 @@ const ellipse = EllipseStatistic
 function apply_statistic(stat::EllipseStatistic,
     scales::Dict{Symbol, Gadfly.ScaleElement},
     coord::Gadfly.CoordinateElement,
-    aes::Gadfly.Aesthetics)    
+    aes::Gadfly.Aesthetics)
 
     Dat = [aes.x aes.y]
     colorflag = aes.color != nothing
     groupflag = aes.group != nothing
-    aes_color = colorflag ? aes.color : fill(nothing, length(aes.x)) 
+    aes_color = colorflag ? aes.color : fill(nothing, length(aes.x))
     aes_group = groupflag ? aes.group : fill(nothing, length(aes.x))
     CT, GT = eltype(aes_color), eltype(aes_group)
 
@@ -2057,7 +2061,7 @@ function apply_statistic(stat::DodgeStatistic,
     nbars = length(unique(aes.color))
     othervar = (stat.axis == :x) ? :y : :x
     vals = getfield(aes, stat.axis)
-    
+
     if stat.position==:dodge
         nbars == length(aes.color) && return
         offset = range(-0.5+0.5/nbars, stop=0.5, step=1/nbars)

@@ -458,9 +458,9 @@ function apply_coordinate(coord::Polar, aess::Vector{Gadfly.Aesthetics},
 
     compose!(
         context(units=UnitBox(
-            coord.xflip ? ymax : -ymax,
+            coord.yflip ? ymax : -ymax,
             coord.yflip ? -ymax : ymax,
-            coord.xflip ? -width : width,
+            coord.yflip ? -width : width,
             coord.yflip ? height : -height,
             leftpad=xpadding,
             rightpad=xpadding,
