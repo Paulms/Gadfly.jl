@@ -107,7 +107,6 @@ function render(geom::PointGeometry, theme::Gadfly.Theme,
     aes_alpha = eltype(aes.alpha) <: Int ? theme.alphas[aes.alpha] : aes.alpha
 
     ctx = context()
-
     for (ϕ, ρ, color, size, shape, alpha) in Compose.cyclezip(aes.x, aes.y, aes.color, aes.size, aes.shape, aes_alpha)
         shapefun = typeof(shape) <: Function ? shape : theme.point_shapes[shape]
         sizeval = typeof(size) <: Int ? interpolate_size(size) : size

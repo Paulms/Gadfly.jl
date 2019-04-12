@@ -20,12 +20,10 @@ iscategorical(scales::Dict{Symbol, Gadfly.ScaleElement}, var::Symbol) =
 
 function apply_scales(scales, coord::Gadfly.CoordinateElement, aess::Vector{Gadfly.Aesthetics}, datas::Gadfly.Data...)
     for scale in scales
-        apply_scale(scale, aess, datas...)
         if typeof(coord) == Gadfly.Coord.Polar && typeof(scale) == DiscreteScale && :x in scale.vars
-            for aes in aess
-                xv = getfield(aes, :x)
-                setfield!(aes, :x, (xv.-minimum(xv))*(2*pi/maximum(xv)))
-            end
+            apply_scale(PolarDiscreteScale(scale), aess, datas...)
+        else
+            apply_scale(scale, aess, datas...)
         end
     end
 
@@ -402,6 +400,59 @@ function apply_scale(scale::DiscreteScale, aess::Vector{Gadfly.Aesthetics}, data
     end
 end
 
+####
+struct PolarDiscreteScale <: Gadfly.ScaleElement
+    vars::Vector{Symbol}
+    labels::Union{(Nothing), Function}
+    levels::Union{(Nothing), AbstractVector}
+    order::Union{(Nothing), AbstractVector}
+end
+PolarDiscreteScale(vals; labels=nothing, levels=nothing, order=nothing) =
+        PolarDiscreteScale(vals, labels, levels, order)
+PolarDiscreteScale(scale::DiscreteScale) = PolarDiscreteScale(scale.vars, scale.labels,
+                                            scale.levels, scale.order)
+
+const polardiscrete = PolarDiscreteScale
+
+element_aesthetics(scale::PolarDiscreteScale) = scale.vars
+
+function apply_scale(scale::PolarDiscreteScale, aess::Vector{Gadfly.Aesthetics}, datas::Gadfly.Data...)
+    for (aes, data) in zip(aess, datas)
+        for var in scale.vars
+            label_var = Symbol(var, "_label")
+            getfield(data, var) === nothing && continue
+
+            if var == :x
+                disc_data = discretize(getfield(data, var), scale.levels, scale.order)
+                setfield!(aes, var, discretize_make_ia(2*pi/maximum(disc_data.index)*(disc_data.index .- 1.0)))
+
+                # The leveler for discrete scales is a closure over the discretized data.
+                if scale.labels === nothing
+                    function default_labeler(xs)
+                        lvls = filter(!ismissing, disc_data.values)
+                        vals = Any[1 <= x <= length(lvls) ? lvls[x] : "" for x in xs]
+                        if all([isa(val, AbstractFloat) for val in vals])
+                            return showoff(vals)
+                        else
+                            return [string(val) for val in vals]
+                        end
+                    end
+                    labeler = default_labeler
+                else
+                    function explicit_labeler(xs)
+                        lvls = filter(!ismissing, disc_data.values)
+                        return [string(scale.labels(lvls[x])) for x in xs]
+                    end
+                    labeler = explicit_labeler
+                end
+
+                in(label_var, Set(fieldnames(typeof(aes)))) && setfield!(aes, label_var, labeler)
+            end
+        end
+    end
+end
+
+###
 
 struct NoneColorScale <: Gadfly.ScaleElement
 end

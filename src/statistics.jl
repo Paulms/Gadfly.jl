@@ -871,15 +871,23 @@ function apply_statistic(stat::TickStatistic,
         tickvisible = fill(true, length(ticks))
         tickscale = fill(1.0, length(ticks))
     elseif categorical
-        ticks = Set{Int}()
-        for val in in_vals
-            val>0 && push!(ticks, round(Int, val))
-        end
-        ticks = Int[t for t in ticks]
-        sort!(ticks)
         if typeof(coord) == Coord.Polar && stat.axis == "x"
-            grids = ((ticks .-1.5)*(2*pi/maximum(ticks)))[2:end]
+            ticks = Set{Int}()
+            for val in in_vals
+                val>=0 && push!(ticks, round(Int, val))
+            end
+            ticks = Int[t for t in ticks]
+            sort!(ticks)
+            grids = [t for t in Set(in_vals)]
+            grids = grids
+            sort!(grids)
         else
+            ticks = Set{Int}()
+            for val in in_vals
+                val>0 && push!(ticks, round(Int, val))
+            end
+            ticks = Int[t for t in ticks]
+            sort!(ticks)
             grids = (ticks .- 0.5)[2:end]
         end
         viewmin = minimum(ticks)
@@ -895,6 +903,11 @@ function apply_statistic(stat::TickStatistic,
                 coverage_weight=stat.coverage_weight,
                 niceness_weight=stat.niceness_weight,
                 strict_span=strict_span)
+        #remove negative y values
+        if stat.axis == "y"
+            ticks = Set(abs.(ticks))
+            ticks = sort!([t for t in ticks])
+        end
         grids = ticks
         multiticks = Gadfly.multilevel_ticks(viewmin - (viewmax - viewmin),
                                              viewmax + (viewmax - viewmin))
