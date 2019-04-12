@@ -897,12 +897,9 @@ function apply_statistic(stat::TickStatistic,
         minval, maxval = promote(minval, maxval)
 
         if typeof(coord) == Coord.Polar && stat.axis == "x"
-            ticks, viewmin, viewmax = pi .* Gadfly.optimize_ticks(minval/pi, maxval/pi, extend_ticks=true,
-                    granularity_weight=stat.granularity_weight,
-                    simplicity_weight=stat.simplicity_weight,
-                    coverage_weight=stat.coverage_weight,
-                    niceness_weight=stat.niceness_weight,
-                    strict_span=strict_span)
+            ticks = [(t-1)*2*pi/12 for t in 1:12]
+            viewmin = 0.0
+            viewmax = 2*pi
         else
             ticks, viewmin, viewmax = Gadfly.optimize_ticks(minval, maxval, extend_ticks=true,
                     granularity_weight=stat.granularity_weight,

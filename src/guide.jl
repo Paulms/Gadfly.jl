@@ -572,7 +572,7 @@ const xticks = XTicks
 default_statistic(guide::XTicks) =
     guide.ticks == nothing ? Stat.identity() : Stat.xticks(ticks=guide.ticks)
 
-polar_to_cartesian(ϕ, h, w) = (0.5 * w * cos(ϕ) + 0.5w, 0.5*h * sin(ϕ)+0.5h)
+_polar_to_cartesian(ϕ, h, w) = (0.5 * w * cos(ϕ) + 0.5w, 0.5*h * sin(ϕ)+0.5h)
 
 function render(guide::XTicks, theme::Gadfly.Theme,
                 aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement, dynamic::Bool=true)
@@ -614,7 +614,7 @@ function render(guide::XTicks, theme::Gadfly.Theme,
     if typeof(coord) == Gadfly.Coord.Polar
         static_grid_lines = compose!(
             context(withoutjs=true),
-            line([[(0.5w, 0.5h), polar_to_cartesian(-t,h,w)] for t in grids[gridvisibility]]),
+            line([[(0.5w, 0.5h), _polar_to_cartesian(-t,h,w)] for t in grids[gridvisibility]]),
             stroke(theme.grid_color),
             linewidth(theme.grid_line_width),
             strokedash(grid_line_style),
@@ -633,7 +633,7 @@ function render(guide::XTicks, theme::Gadfly.Theme,
         if typeof(coord) == Gadfly.Coord.Polar
             dynamic_grid_lines = compose!(
                 context(withjs=true),
-                line([[(0.5w, 0.5h), polar_to_cartesian(-t,h,w)] for t in grids]),
+                line([[(0.5w, 0.5h), _polar_to_cartesian(-t,h,w)] for t in grids]),
                 visible(gridvisibility),
                 stroke(theme.grid_color),
                 linewidth(theme.grid_line_width),
@@ -673,22 +673,24 @@ function render(guide::XTicks, theme::Gadfly.Theme,
     label_heights = [height for (width, height) in label_sizes]
 
     if typeof(coord) == Gadfly.Coord.Polar
-        padding = 5mm
-        static_labels = compose!(
-            context(withoutjs=true),
-            text([0.5 * (w + padding) * cos(-t) + 0.5w for t in grids[tickvisibility]],
-            [0.5*(h + padding) * sin(-t) + 0.5h for t in grids[tickvisibility]],
-            labels[tickvisibility],
-                 [hcenter], [vcenter]),
-            fill(theme.minor_label_color),
-            font(theme.minor_label_font),
-            fontsize(theme.minor_label_font_size),
-            svgclass("guide xlabels"))
-        if dynamic
+        padding = -5mm
+        ang_padding = 1/36*pi
+        hlayout = ctxpromise() do draw_context
+            static_labels = compose!(
+                context(withoutjs=true),
+                text([0.5 * (w + padding) * cos(-t + ang_padding) + 0.5w for t in grids[tickvisibility]],
+                [0.5*(h + padding) * sin(-t + ang_padding) + 0.5h for t in grids[tickvisibility]],
+                labels[tickvisibility],
+                     [hcenter], [vcenter]),
+                fill(theme.minor_label_color),
+                font(theme.minor_label_font),
+                fontsize(theme.minor_label_font_size),
+                svgclass("guide xlabels"))
+
             dynamic_labels = compose!(
                 context(withjs=true),
-                text([0.5 * (w + padding) * cos(-t) + 0.5w for t in grids],
-                [0.5 * (h + padding) * sin(-t) + 0.5h for t in grids],
+                text([0.5 * (w + padding) * cos(-t + ang_padding) + 0.5w for t in grids],
+                [0.5 * (h + padding) * sin(-t + ang_padding) + 0.5h for t in grids],
                 labels, [hcenter], [vcenter]),
                 visible(tickvisibility),
                 fill(theme.minor_label_color),
@@ -696,12 +698,15 @@ function render(guide::XTicks, theme::Gadfly.Theme,
                 fontsize(theme.minor_label_font_size),
                 svgattribute("gadfly:scale", scale),
                 svgclass("guide xlabels"))
-            labels = compose!(context(), static_labels, dynamic_labels)
-        else
-            labels = compose!(context(), static_labels)
+
+            return compose!(context(), static_labels, dynamic_labels)
         end
-        return [PositionedGuide([labels], 10,
-                                under_guide_position),
+        hlayout_context = compose!(context(minwidth = maximum(label_widths[tickvisibility]) + 2*padding,
+                                           minheight = maximum(label_heights[tickvisibility]) + 2*padding),
+                                   hlayout)
+
+        return [PositionedGuide([hlayout_context], 0,
+                                over_guide_position),
                 PositionedGuide([grid_lines], 0, under_guide_position)]
     else
         padding = 1mm

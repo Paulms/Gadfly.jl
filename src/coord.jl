@@ -37,6 +37,8 @@ function Cartesian(
     Cartesian(xvars, yvars, xmin, xmax, ymin, ymax, xflip, yflip, fixed, aspect_ratio, raster)
 end
 
+convert_to_cartesian(::Cartesian, x, y) = (x,y)
+
 """
     Coord.cartesian(; xmin=nothing, xmax=nothing, ymin=nothing, ymax=nothing,
                     xflip=false, yflip=false,
