@@ -876,8 +876,7 @@ function apply_statistic(stat::TickStatistic,
             for val in in_vals
                 val>=0 && push!(ticks, round(Int, val))
             end
-            ticks = Int[t for t in ticks]
-            sort!(ticks)
+            ticks = Int[t for (t,_) in enumerate(ticks)]
             grids = [t for t in Set(in_vals)]
             grids = grids
             sort!(grids)
@@ -897,12 +896,21 @@ function apply_statistic(stat::TickStatistic,
     else
         minval, maxval = promote(minval, maxval)
 
-        ticks, viewmin, viewmax = Gadfly.optimize_ticks(minval, maxval, extend_ticks=true,
-                granularity_weight=stat.granularity_weight,
-                simplicity_weight=stat.simplicity_weight,
-                coverage_weight=stat.coverage_weight,
-                niceness_weight=stat.niceness_weight,
-                strict_span=strict_span)
+        if typeof(coord) == Coord.Polar && stat.axis == "x"
+            ticks, viewmin, viewmax = pi .* Gadfly.optimize_ticks(minval/pi, maxval/pi, extend_ticks=true,
+                    granularity_weight=stat.granularity_weight,
+                    simplicity_weight=stat.simplicity_weight,
+                    coverage_weight=stat.coverage_weight,
+                    niceness_weight=stat.niceness_weight,
+                    strict_span=strict_span)
+        else
+            ticks, viewmin, viewmax = Gadfly.optimize_ticks(minval, maxval, extend_ticks=true,
+                    granularity_weight=stat.granularity_weight,
+                    simplicity_weight=stat.simplicity_weight,
+                    coverage_weight=stat.coverage_weight,
+                    niceness_weight=stat.niceness_weight,
+                    strict_span=strict_span)
+        end
         #remove negative y values
         if stat.axis == "y"
             ticks = Set(abs.(ticks))

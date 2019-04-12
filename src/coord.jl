@@ -324,7 +324,7 @@ and the x-axis in 10 units across, the plot will be drawn at an aspect ratio of
 """
 const polar = Polar
 
-
+convert_to_cartesian(::Polar, ϕ, ρ) = polar_to_cartesian(ρ, ϕ)
 cartesian_to_polar(x, y) = (hypot(x, y), atan2(y, x))
 polar_to_cartesian(ρ, ϕ) = (ρ * cos(ϕ), ρ * sin(ϕ))
 
@@ -441,7 +441,7 @@ function apply_coordinate(coord::Polar, aess::Vector{Gadfly.Aesthetics},
     end
 
     xpadding = Scale.iscategorical(scales, :x) ? 0mm : 2mm
-    ypadding = Scale.iscategorical(scales, :y) ? 0mm : 2mm
+    ypadding = Scale.iscategorical(scales, :x) ? 0mm : 2mm
 
     if Scale.iscategorical(scales, :x) && (pad_categorical_x===missing || pad_categorical_x)
         xmin -= 0.5

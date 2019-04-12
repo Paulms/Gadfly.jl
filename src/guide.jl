@@ -672,33 +672,65 @@ function render(guide::XTicks, theme::Gadfly.Theme,
     label_widths = [width for (width, height) in label_sizes]
     label_heights = [height for (width, height) in label_sizes]
 
-    padding = 1mm
-
-    hlayout = ctxpromise() do draw_context
+    if typeof(coord) == Gadfly.Coord.Polar
+        padding = 5mm
         static_labels = compose!(
             context(withoutjs=true),
-            text(ticks[tickvisibility], [0h + padding], labels[tickvisibility],
-                 [hcenter], [vtop]),
+            text([0.5 * (w + padding) * cos(-t) + 0.5w for t in grids[tickvisibility]],
+            [0.5*(h + padding) * sin(-t) + 0.5h for t in grids[tickvisibility]],
+            labels[tickvisibility],
+                 [hcenter], [vcenter]),
             fill(theme.minor_label_color),
             font(theme.minor_label_font),
             fontsize(theme.minor_label_font_size),
             svgclass("guide xlabels"))
+        if dynamic
+            dynamic_labels = compose!(
+                context(withjs=true),
+                text([0.5 * (w + padding) * cos(-t) + 0.5w for t in grids],
+                [0.5 * (h + padding) * sin(-t) + 0.5h for t in grids],
+                labels, [hcenter], [vcenter]),
+                visible(tickvisibility),
+                fill(theme.minor_label_color),
+                font(theme.minor_label_font),
+                fontsize(theme.minor_label_font_size),
+                svgattribute("gadfly:scale", scale),
+                svgclass("guide xlabels"))
+            labels = compose!(context(), static_labels, dynamic_labels)
+        else
+            labels = compose!(context(), static_labels)
+        end
+        return [PositionedGuide([labels], 10,
+                                under_guide_position),
+                PositionedGuide([grid_lines], 0, under_guide_position)]
+    else
+        padding = 1mm
+        hlayout = ctxpromise() do draw_context
+            static_labels = compose!(
+                context(withoutjs=true),
+                text(ticks[tickvisibility], [0h + padding], labels[tickvisibility],
+                     [hcenter], [vtop]),
+                fill(theme.minor_label_color),
+                font(theme.minor_label_font),
+                fontsize(theme.minor_label_font_size),
+                svgclass("guide xlabels"))
 
-        dynamic_labels = compose!(
-            context(withjs=true),
-            text(ticks, [1h - padding], labels, [hcenter], [vbottom]),
-            visible(tickvisibility),
-            fill(theme.minor_label_color),
-            font(theme.minor_label_font),
-            fontsize(theme.minor_label_font_size),
-            svgattribute("gadfly:scale", scale),
-            svgclass("guide xlabels"))
+            dynamic_labels = compose!(
+                context(withjs=true),
+                text(ticks, [1h - padding], labels, [hcenter], [vbottom]),
+                visible(tickvisibility),
+                fill(theme.minor_label_color),
+                font(theme.minor_label_font),
+                fontsize(theme.minor_label_font_size),
+                svgattribute("gadfly:scale", scale),
+                svgclass("guide xlabels"))
 
-        return compose!(context(), static_labels, dynamic_labels)
+            return compose!(context(), static_labels, dynamic_labels)
+        end
+        hlayout_context = compose!(context(minwidth=sum(label_widths[tickvisibility]),
+                                           minheight=2*padding + maximum(label_heights[tickvisibility])),
+                                   hlayout)
     end
-    hlayout_context = compose!(context(minwidth=sum(label_widths[tickvisibility]),
-                                       minheight=2*padding + maximum(label_heights[tickvisibility])),
-                               hlayout)
 
     vlayout = ctxpromise() do draw_context
         static_labels = compose!(
@@ -886,7 +918,12 @@ function render(guide::YTicks, theme::Gadfly.Theme,
                                labels...)
     label_widths = [width for (width, height) in label_sizes]
     label_heights = [height for (width, height) in label_sizes]
-    padding = 1mm
+
+    if typeof(coord) == Gadfly.Coord.Polar
+        padding = 2.5mm
+    else
+        padding = 1mm
+    end
 
     hlayout = ctxpromise() do draw_context
         static_labels = compose!(
