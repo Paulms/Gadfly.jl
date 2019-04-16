@@ -861,6 +861,28 @@ function apply_statistic(stat::TickStatistic,
                 strict_span = true
             end
         end
+    elseif typeof(coord) == Coord.Polar
+        if stat.axis == "x"
+            #just ignore xmin and xmax
+            #radius has effect on x and y cartesian coords
+            if coord.ymin !== nothing
+                minval = coord.ymin
+                strict_span = true
+            end
+            if coord.ymax !== nothing
+                maxval = coord.ymax
+                strict_span = true
+            end
+        elseif stat.axis == "y"
+            if coord.ymin !== nothing
+                minval = coord.ymin
+                strict_span = true
+            end
+            if coord.ymax !== nothing
+                maxval = coord.ymax
+                strict_span = true
+            end
+        end
     end
 
     # all the input values in order.

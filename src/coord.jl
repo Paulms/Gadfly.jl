@@ -326,7 +326,8 @@ and the x-axis in 10 units across, the plot will be drawn at an aspect ratio of
 """
 const polar = Polar
 
-convert_to_cartesian(::Polar, ϕ, ρ) = polar_to_cartesian(ρ, ϕ)
+convert_to_cartesian(coord::Polar, ϕ, ρ) =
+    polar_to_cartesian(ρ - (coord.ymin !== nothing ? coord.ymin : 0), ϕ)
 cartesian_to_polar(x, y) = (hypot(x, y), atan2(y, x))
 polar_to_cartesian(ρ, ϕ) = (ρ * cos(ϕ), ρ * sin(ϕ))
 
@@ -434,7 +435,7 @@ function apply_coordinate(coord::Polar, aess::Vector{Gadfly.Aesthetics},
 
     if xmin === nothing || !isfinite(xmin)
         xmin = 0.0
-        xmax = 1.0
+        xmax = 2*pi
     end
 
     if ymin === nothing || !isfinite(ymin)
@@ -445,23 +446,20 @@ function apply_coordinate(coord::Polar, aess::Vector{Gadfly.Aesthetics},
     xpadding = Scale.iscategorical(scales, :x) ? 0mm : 2mm
     ypadding = Scale.iscategorical(scales, :x) ? 0mm : 2mm
 
-    if Scale.iscategorical(scales, :x) && (pad_categorical_x===missing || pad_categorical_x)
-        xmin -= 0.5
-        xmax += 0.5
-    end
-
+    # error on categorical radius ?
     if Scale.iscategorical(scales, :y) && (pad_categorical_y===missing || pad_categorical_y)
         ymin -= 0.5
         ymax += 0.5
     end
 
-    width  = 2*(ymax-ymin)
-    height = 2*(ymax-ymin)
+    yrad = ymax-ymin
+    width  = 2*yrad
+    height = 2*yrad
 
     compose!(
         context(units=UnitBox(
-            coord.yflip ? ymin : -ymax,
-            coord.yflip ? -ymin : ymax,
+            coord.yflip ? yrad : -yrad,
+            coord.yflip ? -yrad : yrad,
             coord.yflip ? -width : width,
             coord.yflip ? height : -height,
             leftpad=xpadding,

@@ -573,7 +573,6 @@ default_statistic(guide::XTicks) =
     guide.ticks == nothing ? Stat.identity() : Stat.xticks(ticks=guide.ticks)
 
 _polar_to_cartesian(ϕ, h, w) = (0.5 * w * cos(ϕ) + 0.5w, 0.5*h * sin(ϕ)+0.5h)
-
 function render(guide::XTicks, theme::Gadfly.Theme,
                 aes::Gadfly.Aesthetics, coord::Gadfly.CoordinateElement, dynamic::Bool=true)
     guide.ticks == nothing && return PositionedGuide[]
@@ -612,9 +611,10 @@ function render(guide::XTicks, theme::Gadfly.Theme,
     # grid lines
     grid_line_style = Gadfly.get_stroke_vector(theme.grid_line_style)
     if typeof(coord) == Gadfly.Coord.Polar
+        rmax = maximum(aes.ytick[aes.ytickvisible])
         static_grid_lines = compose!(
             context(withoutjs=true),
-            line([[(0.5w, 0.5h), _polar_to_cartesian(-t,h,w)] for t in grids[gridvisibility]]),
+            line([[(0, 0), Gadfly.Coord.convert_to_cartesian(coord, t, rmax)] for t in grids[gridvisibility]]),
             stroke(theme.grid_color),
             linewidth(theme.grid_line_width),
             strokedash(grid_line_style),
@@ -633,7 +633,7 @@ function render(guide::XTicks, theme::Gadfly.Theme,
         if typeof(coord) == Gadfly.Coord.Polar
             dynamic_grid_lines = compose!(
                 context(withjs=true),
-                line([[(0.5w, 0.5h), _polar_to_cartesian(-t,h,w)] for t in grids]),
+                line([[(0, 0), Gadfly.Coord.convert_to_cartesian(coord, t, rmax)] for t in grids]),
                 visible(gridvisibility),
                 stroke(theme.grid_color),
                 linewidth(theme.grid_line_width),
@@ -857,11 +857,13 @@ function render(guide::YTicks, theme::Gadfly.Theme,
 
     # grid lines
     grid_line_style = Gadfly.get_stroke_vector(theme.grid_line_style)
+
     if typeof(coord) == Gadfly.Coord.Polar
+        rmin = coord.ymin !== nothing ? coord.ymin : 0
         static_grid_lines = compose!(
             context(withoutjs=true),
-            ellipse([0.5w],[0.5h],[0.5*t*w for t in grids[gridvisibility]],
-            [0.5*t*h for t in grids[gridvisibility]]),
+            ellipse([0],[0],[t-rmin for t in grids[gridvisibility]],
+            [t-rmin for t in grids[gridvisibility]]),
             fill("transparent"),
             stroke(theme.grid_color),
             linewidth(theme.grid_line_width),
@@ -881,8 +883,8 @@ function render(guide::YTicks, theme::Gadfly.Theme,
         if typeof(coord) == Gadfly.Coord.Polar
             dynamic_grid_lines = compose!(
                 context(withjs=true),
-                ellipse([0.5w],[0.5h],[0.5*t*w for t in grids[gridvisibility]],
-                [0.5*t*h for t in grids[gridvisibility]]),
+                ellipse([0],[0],[t-rmin for t in grids],
+                [t-rmin for t in grids]),
                 fill("transparent"),
                 visible(gridvisibility),
                 stroke(theme.grid_color),
@@ -933,7 +935,7 @@ function render(guide::YTicks, theme::Gadfly.Theme,
     hlayout = ctxpromise() do draw_context
         static_labels = compose!(
             context(withoutjs=true),
-            text([1.0w - padding], ticks[tickvisibility], labels[tickvisibility],
+            text([1.0w - padding], ticks[tickvisibility] .- rmin, labels[tickvisibility],
                  [hright], [vcenter]),
             fill(theme.minor_label_color),
             font(theme.minor_label_font),
@@ -942,7 +944,7 @@ function render(guide::YTicks, theme::Gadfly.Theme,
 
         dynamic_labels = compose!(
             context(withjs=true),
-            text([1.0w - padding], ticks, labels,
+            text([1.0w - padding], ticks .- rmin, labels,
                  [hright], [vcenter]),
             visible(tickvisibility),
             fill(theme.minor_label_color),
